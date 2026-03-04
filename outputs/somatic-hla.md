@@ -53,8 +53,6 @@ lohhla["LOH"] = (
 )
 ```
 
-**Important caveat**: The Tempo documentation includes a warning that "LOHHLA is temporarily disabled due to a bug need future investigation. It will be enabled again in the future release." If LOHHLA fails, the process creates empty placeholder output files so downstream processes (metadata parser, aggregation) do not break.
-
 ## Integration with Other Processes
 
 Polysolver HLA calls serve as input to two downstream analyses:
