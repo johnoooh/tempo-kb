@@ -2,7 +2,7 @@
 
 > **Quick answer:** All Tempo reference paths are built from `params.reference_base` (default `/juno/work/tempo/cmopipeline`) plus a fixed sub-path layout defined in `conf/references.config`. To run elsewhere, mirror that directory layout under your own `reference_base` and point Tempo at it with `--reference_base /your/path`. Individual files can also be overridden by their `--<param>` name. **GRCh37/b37 is the validated build; GRCh38 is not fully supported.**
 
-> 📖 **Authoritative source:** the official [reference-files.md](https://github.com/mskcc/tempo/blob/develop/docs/reference-files.md) ([docs site](https://cmotempo.netlify.app/)) is the source of truth for reference data — and it has a detailed **"Custom target files"** section (how to build `targets.bed`/`baits.interval_list`/`coding.bed` for a new bait set, and the `targets_base` folder layout) that this page does not reproduce. Use it for custom **targets**; use the param table below to map the broader **reference_base** layout when running off-Juno.
+> 📖 **Authoritative source:** the official [reference-files.md](https://github.com/mskcc/tempo/blob/develop/docs/reference-files.md) (in [`mskcc/tempo/docs`](https://github.com/mskcc/tempo/tree/develop/docs)) is the source of truth for reference data — and it has a detailed **"Custom target files"** section (how to build `targets.bed`/`baits.interval_list`/`coding.bed` for a new bait set, and the `targets_base` folder layout) that this page does not reproduce. Use it for custom **targets**; use the param table below to map the broader **reference_base** layout when running off-Juno.
 
 ## The base parameters (verified — `conf/juno.config`)
 

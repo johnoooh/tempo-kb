@@ -30,7 +30,7 @@ A WES recapture cohort moves through these stages:
 | **CMO Project Management (CMO PM)** | Submits cohort requests; project & sample info; help accessing results | skicmopm@mskcc.org |
 | **CMO Computational Science (CCS) / Tempo team** | Runs the pipeline; questions about pipeline output and QC | zzPDL_CMO_TEMPO_Support@mskcc.org |
 
-The TEMPO website is at <https://cmotempo.netlify.app/>.
+The official Tempo docs are at <https://github.com/mskcc/tempo/tree/develop/docs>.
 
 ## See Also
 

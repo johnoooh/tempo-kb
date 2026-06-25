@@ -44,7 +44,7 @@ Some deliveries include a disclaimer that, due to an ongoing systems issue, the 
 The email closes with two contacts — pick based on your question:
 
 - **Project & sample information, or help accessing results** → CMO Project Management: **skicmopm@mskcc.org**
-- **Pipeline output / QC interpretation** → CMO Computational Science (CCS) Team: **zzPDL_CMO_TEMPO_Support@mskcc.org**, or visit the [TEMPO website](https://cmotempo.netlify.app/).
+- **Pipeline output / QC interpretation** → CMO Computational Science (CCS) Team: **zzPDL_CMO_TEMPO_Support@mskcc.org**, or see the [Tempo docs](https://github.com/mskcc/tempo/tree/develop/docs).
 
 ## See Also
 
