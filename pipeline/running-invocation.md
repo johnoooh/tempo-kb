@@ -48,6 +48,10 @@ When a sub-workflow depends on another's output, Tempo automatically enables the
 
 You do not need to manually specify dependencies.
 
+### Selection is whole-sub-workflow only
+
+`--workflows` includes or excludes **entire** sub-workflows. There is **no supported way to skip an individual tool within a sub-workflow** — e.g., you cannot run `snv` but skip neoantigen prediction. `RunNeoantigen` is called unconditionally inside the SNV sub-workflow; the `params.tools` key in `nextflow.config` is legacy and is **not evaluated** by `dsl2.nf`. To omit neoantigen you would either drop `snv` entirely (also losing Mutect2/Strelka2/MAF) or patch `modules/subworkflow/snv_wf.nf` yourself. (Verified against `dsl2.nf` and `snv_wf.nf` on `develop`.)
+
 ## Profiles
 
 The `-profile` flag (single dash, Nextflow syntax) loads environment-specific configuration:

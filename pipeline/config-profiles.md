@@ -22,7 +22,18 @@ Key Juno settings include `maxRetries = 3`, an error strategy that retries up to
 
 Runs Tempo on AWS Batch using Docker containers. It composes `conf/docker.config`, `conf/containers.config`, `conf/awsbatch.config`, `conf/resources_aws.config`, and `conf/references.config`, plus assay-type-specific resource overrides.
 
-<!-- TODO: VERIFY WITH USER -- conf/awsbatch.config is referenced in nextflow.config but the file was not found in the repository. AWS Batch details may be incomplete. -->
+`conf/awsbatch.config` is not committed to the repo — it is generated from the tracked **`conf/awsbatch.config.template`**, which you fill in before running this profile. The fields to set (verified from the template) are:
+
+| Field | What to provide |
+|-------|-----------------|
+| `aws.region` | your AWS region |
+| `aws.client.storageEncryption` | S3 storage encryption setting |
+| `workDir` | an S3 work directory (e.g. `s3://your-bucket/work`) |
+| `process.queue` | your AWS Batch job-queue ARN |
+| `params.reference_base` | S3 path to your reference data (template default `s3:/`) |
+| `params.outDir` | S3 output path |
+
+The template also pins `aws.batch.cliPath`, mounts `/scratch`, and sets `errorStrategy`/`maxRetries`. Two large-memory steps (`CreateRecalibrationTable`, `RecalibrateBam`) are routed to a `job-definition://UlimitLargeMem` job definition you must create in AWS Batch.
 
 ### docker
 

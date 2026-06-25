@@ -82,6 +82,17 @@ Consider FACETS results unreliable when:
 - The logR plot shows no clear segmentation structure.
 - The run exhausted all 4 seed attempts (check the process logs).
 
+### Is a purity of exactly 0.3 real, or a fallback?
+
+When FACETS cannot estimate purity, Tempo writes a **fallback value of `0.3`** into the sample statistics (`generate_samplestatistics.R`: `ifelse(is.na(fit$purity), ".3", fit$purity)`), and the sample continues — it is **not** dropped. There is **no flag column** in any delivered file (`sample_data.txt`, `*_purity.out`, `facets_qc.txt`) that distinguishes a true 0.3 estimate from the fallback (verified against `create_metadata_file.py`). So a delivered purity of `0.30` is ambiguous.
+
+To tell them apart, inspect the per-pair FACETS outputs:
+- Open the FACETS **diagnostic plot** — a genuine fit shows real segmentation and a `dipLogR` anchored to a clear copy state; a fallback shows a degenerate/failed fit.
+- Check `*_purity.out` / `*_hisens.out` and the `*.facets_qc.txt` for a flagged or failed fit.
+- A purity reported as exactly `0.3` (two decimals, no estimate-style precision) on a sample whose QC also shows low coverage is very likely the fallback.
+
+Because CCF, zygosity, and TMB all depend on purity, treat a probable-fallback sample's downstream values with caution. See [../troubleshooting/facets-failures.md](../troubleshooting/facets-failures.md).
+
 ## File Locations
 
 - FACETS output: `<outDir>/somatic/<tumor>__<normal>/facets/<tumor>__<normal>/`

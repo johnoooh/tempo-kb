@@ -28,18 +28,17 @@ Count only mutations with these `Variant_Classification` values:
 
 Silent mutations (e.g., `Silent`, `Intron`, `3'UTR`, `5'UTR`, `IGR`) are excluded from the TMB calculation.
 
-## Coding Region Size
+## Coding Region Size (Tempo's exact denominators)
 
-<!-- TODO: VERIFY WITH USER -- exact values depend on bait set -->
+Tempo computes TMB in `MetaDataParser` (`create_metadata_file.py`) using a **coding-sequence (CDS) size in Mb that depends on the bait set**, not the full capture footprint. Use the exact values Tempo uses so your TMB matches the pipeline's `metadata` output:
 
-The denominator depends on your assay type:
+| Assay / bait set | CDS denominator (Mb) |
+|------------------|----------------------|
+| Agilent Exon 51MB v3 | **30.89918** |
+| IDT Exome v1 FP | **36.00458** |
+| WGS (genome) | **45.57229** |
 
-| Assay | Approximate Coding Region | Notes |
-|-------|--------------------------|-------|
-| WES (exome) | ~30 Mb | Varies by bait set (IDT vs Agilent) |
-| WGS (genome) | ~2800 Mb | Whole genome callable region |
-
-The exact value for exome depends on the specific bait set used in your Tempo run. Check with your sequencing facility for the precise capture region size.
+> **Important:** because the denominator differs by bait set, raw TMB values are **not directly comparable across assay types** unless you know which CDS size was used. The WGS value (45.57 Mb) is the coding region Tempo scores against, not the whole 3-Gb genome — Tempo's WGS TMB is still a coding-mutation density. Tempo counts only **somatic** non-synonymous coding mutations (germline excluded) and also includes `Splice_Region` alongside the classes listed above.
 
 ## File Locations
 

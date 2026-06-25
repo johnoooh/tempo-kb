@@ -57,14 +57,15 @@ MSIsensor works in two steps:
 
 ### Score Interpretation
 
-The MSI score ranges from 0 to 100 (percentage of unstable microsatellite loci):
+The MSI score is the percentage of unstable microsatellite loci (the `%` column of the MSIsensor output, 0–100).
 
-<!-- TODO: VERIFY WITH USER - exact thresholds may vary by institution -->
-- **MSI-H (high):** Score >= 10 (commonly used threshold) or >= 3.5 (some institutions use lower thresholds for WES).
-- **MSS (stable):** Score < 3.5.
-- **MSI-L (low):** Intermediate scores between MSS and MSI-H thresholds.
+> **Tempo does not classify MSI-H vs MSS.** It records the raw MSIsensor `%` score in the per-pair metadata (`MSIscore`) and passes it through unchanged — there is **no hardcoded MSI-H threshold** anywhere in the pipeline. You must apply your own cutoff downstream.
 
-The appropriate threshold depends on the assay type and institutional standards. WGS data typically has more microsatellite loci evaluated, potentially requiring different thresholds than WES.
+Commonly used external thresholds (not applied by Tempo) for orientation:
+- **MSI-H (high):** `%` ≳ 10 is a frequently cited cutoff; some WES workflows use a lower threshold (~3.5).
+- **MSS (stable):** below the chosen cutoff.
+
+The appropriate threshold depends on assay type, the microsatellite locus list used, and institutional standards — confirm against your own validated cutoff rather than assuming one.
 
 ### Tempo Implementation
 
