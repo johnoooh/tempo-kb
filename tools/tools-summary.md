@@ -5,6 +5,7 @@
 ## How to use this page
 
 - Want to know **what a tool is and why it runs**? Find it below.
+- Want the **paper or source code** for a tool? See [tool-references.md](tool-references.md) — primary publication + official repo for every tool.
 - Want the **math/thresholds** behind an output? See the linked deep-dive page or [`outputs/`](../outputs/).
 - "Calling process" is the `.nf` process name — useful when reading a trace file or `tempodeliver` completion steps.
 

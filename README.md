@@ -26,7 +26,7 @@ How you receive and access your results after the pipeline runs.
 - [tools-summary.md](pipeline/tools-summary.md) — the tools at a glance
 
 ### [`tools/`](tools/) — Per-tool deep dives
-Start with [tools-summary.md](tools/tools-summary.md) — the **complete inventory of every tool** Tempo runs, by stage, with versions. Deep dives: [alignment & preprocessing](tools/alignment-preprocessing.md), [SNV callers](tools/snv-callers.md), [QC tools](tools/qc-tools.md), [FACETS](tools/facets-algorithm.md), MAF format & filtering, structural variants, HRDetect, SVclone, HLA/neoantigen, signatures/MSI.
+Start with [tools-summary.md](tools/tools-summary.md) — the **complete inventory of every tool** Tempo runs, by stage, with versions — and [tool-references.md](tools/tool-references.md) for each tool's **primary paper + source code**. Deep dives: [alignment & preprocessing](tools/alignment-preprocessing.md), [SNV callers](tools/snv-callers.md), [QC tools](tools/qc-tools.md), [FACETS](tools/facets-algorithm.md), MAF format & filtering, structural variants, HRDetect, SVclone, HLA/neoantigen, signatures/MSI.
 
 ### [`outputs/`](outputs/) — Output file reference
 What each output file and directory contains, by category (somatic, germline, QC, BAMs, cohort aggregates) — start with [directory-structure.md](outputs/directory-structure.md). QC pass/warn/fail cutoffs (and whether to exclude warn/fail samples) are in [qc-thresholds.md](outputs/qc-thresholds.md); cohort copy-number files in [cna-genelevel-armlevel.md](outputs/cna-genelevel-armlevel.md).
