@@ -26,11 +26,31 @@ cat facets_tmp/*arm_level.txt | grep -v "DIPLOID" | grep -v "Tumor_Sample_Barcod
 
 ## Columns
 
-The column names are **inherited verbatim from facets-suite** and are not enumerated in the Tempo repo. For a typical facets-suite `gene_level` output expect (confirm against your file's header line): `Tumor_Sample_Barcode`, `Hugo_Symbol`, `chr`, `seg.start`, `seg.end`, `tcn`, `lcn`, `cn_state`, `filter`, plus per-gene focality/CI fields. Arm-level outputs carry the sample barcode, chromosome arm, the arm's copy state, and fraction-of-arm-altered fields.
+The column names are **inherited verbatim from facets-suite** (`run-facets-wrapper.R --everything`) and are not enumerated in the Tempo repo. They have changed across facets-suite versions — **always read the header from your own file**.
 
-> **Read the header from your own file** rather than assuming positions — facets-suite has changed column order across versions. The Tempo aggregation only guarantees the `cn_state` (col 24) and `filter` (col 25) positions used by the awk above for the version it was run with.
+**Gene-level columns observed in a recent delivery (facets-suite 0.5.14, 25 columns):**
 
-**`cn_state` values:** the code only names `DIPLOID` (the excluded value). The other categories come from facets-suite; for facets-suite ~1.6.x these are typically `AMP`, `GAIN`, `DIPLOID`, `HETLOSS`, `HOMDEL` (and CN-LOH variants). This list is **from facets-suite, not confirmed by the Tempo repo** — verify against your data and the facets-suite version.
+```
+sample, gene, chrom, gene_start, gene_end, tsg, seg,
+median_cnlr_seg, segclust, seg_start, seg_end,
+cf.em, tcn.em, lcn.em, cf, tcn, lcn, seg_length, mcn,
+genes_on_seg, gene_snps, gene_het_snps, spans_segs,
+cn_state, filter
+```
+
+- `sample` is the `{tumor}__{normal}` pair barcode (**not** `Tumor_Sample_Barcode`).
+- `gene` is the gene symbol (**not** `Hugo_Symbol`).
+- `cn_state` (col 24) and `filter` (col 25) are the columns the aggregation awk filters on.
+
+**Arm-level columns observed (8 columns):**
+
+```
+sample, arm, tcn, lcn, cn_length, arm_length, frac_of_arm, cn_state
+```
+
+> **Watch-out:** the aggregator's `grep -v "Tumor_Sample_Barcode"` step is meant to strip duplicated header lines, but the real header begins with `sample` — so **duplicated `sample\tarm\t…` header rows remain in `cna_armlevel.txt`** (one per sample's `*arm_level.txt`). Filter them out yourself before analysis: `awk 'NR==1 || $1!="sample"'` or `df[df['sample'] != 'sample']`.
+
+**`cn_state` values observed in a recent WES delivery:** `AMP`, `AMP (BALANCED)`, `AMP (LOH)`, `AMP (many states)`, `CNLOH`, `CNLOH & GAIN`, `CNLOH AFTER`, `CNLOH BEFORE`, `CNLOH BEFORE & GAIN`, `CNLOH BEFORE & LOSS`, `DIPLOID or CNLOH`, `DOUBLE LOSS AFTER`, `GAIN`, `GAIN (many states)`, `HETLOSS`, `HOMDEL`, `INDETERMINATE`, `LOSS (many states)`, `LOSS & GAIN`, `LOSS AFTER`, `LOSS BEFORE`, `LOSS BEFORE & AFTER`, `LOSS BEFORE or DOUBLE LOSS AFTER`, `TETRAPLOID`, `TETRAPLOID or CNLOH BEFORE`. (`DIPLOID` itself is the value excluded by the aggregator.) The set is much broader than the canonical `AMP / GAIN / HETLOSS / HOMDEL / CNLOH` — it encodes timing relative to WGD and uncertainty modifiers, and the exact set depends on the facets-suite version. For coarse filtering use `str.contains("AMP")`, `str.contains("HOMDEL")`, `str.contains("LOSS")`, etc.
 
 ## Loading and filtering (Python)
 
@@ -43,10 +63,14 @@ amp = gl[gl["cn_state"].str.contains("AMP", na=False)]
 homdel = gl[gl["cn_state"].str.contains("HOMDEL", na=False)]
 
 # recurrence of a gene's alteration across the cohort
-recurrent = gl.groupby(["Hugo_Symbol","cn_state"]).size().sort_values(ascending=False)
+recurrent = gl.groupby(["gene", "cn_state"]).size().sort_values(ascending=False)
+
+# arm-level: filter out the duplicated header rows the aggregator leaves behind
+al = pd.read_csv("cohort_level/<cohort>/cna_armlevel.txt", sep="\t")
+al = al[al["sample"] != "sample"].copy()
 ```
 
-(Adjust column names to match your header.)
+(Adjust column names to match your file's header — facets-suite has changed names across versions.)
 
 ## Caveats
 

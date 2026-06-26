@@ -14,19 +14,20 @@ TMB = (number of non-silent somatic mutations) / (size of coding region in megab
 
 ## Non-Silent Variant Classifications
 
-Count only mutations with these `Variant_Classification` values:
+Tempo's `MetaDataParser` (`create_metadata_file.py`) counts mutations with these `Variant_Classification` values (verified against the develop branch):
 
 - `Missense_Mutation`
 - `Nonsense_Mutation`
-- `Frame_Shift_Del`
+- `Nonstop_Mutation`
 - `Frame_Shift_Ins`
+- `Frame_Shift_Del`
 - `In_Frame_Del`
 - `In_Frame_Ins`
-- `Splice_Site`
 - `Translation_Start_Site`
-- `Nonstop_Mutation`
+- `Splice_Site`
+- `Splice_Region`
 
-Silent mutations (e.g., `Silent`, `Intron`, `3'UTR`, `5'UTR`, `IGR`) are excluded from the TMB calculation.
+Silent mutations (e.g., `Silent`, `Intron`, `3'UTR`, `5'UTR`, `IGR`) are excluded from the TMB calculation. Tempo also excludes any row with `Mutation_Status == "GERMLINE"` before counting.
 
 ## Coding Region Size (Tempo's exact denominators)
 
@@ -38,7 +39,9 @@ Tempo computes TMB in `MetaDataParser` (`create_metadata_file.py`) using a **cod
 | IDT Exome v1 FP | **36.00458** |
 | WGS (genome) | **45.57229** |
 
-> **Important:** because the denominator differs by bait set, raw TMB values are **not directly comparable across assay types** unless you know which CDS size was used. The WGS value (45.57 Mb) is the coding region Tempo scores against, not the whole 3-Gb genome — Tempo's WGS TMB is still a coding-mutation density. Tempo counts only **somatic** non-synonymous coding mutations (germline excluded) and also includes `Splice_Region` alongside the classes listed above.
+> **Important:** because the denominator differs by bait set, raw TMB values are **not directly comparable across assay types** unless you know which CDS size was used. The WGS value (45.57 Mb) is the coding region Tempo scores against, not the whole 3-Gb genome — Tempo's WGS TMB is still a coding-mutation density.
+>
+> **Pipeline TMB also intersects mutations with the assay coding-baits BED** before counting (`pybedtools.intersect`), so a naive `len(maf_nonsilent) / CODING_MB` will overcount slightly relative to the pipeline's `TMB` in `sample_data.txt`. To exactly reproduce the pipeline value, intersect with `ensGene.all_CODING_exons.reference.bed` for your bait set; the simpler `len()/Mb` recipe below is a close-but-not-identical approximation.
 
 ## File Locations
 
@@ -59,15 +62,18 @@ maf_path = "outDir/somatic/TUMOR__NORMAL/combined_mutations/TUMOR__NORMAL.somati
 maf = pd.read_csv(maf_path, sep='\t', comment='#', low_memory=False)
 
 non_silent = [
-    'Missense_Mutation', 'Nonsense_Mutation', 'Frame_Shift_Del',
-    'Frame_Shift_Ins', 'In_Frame_Del', 'In_Frame_Ins',
-    'Splice_Site', 'Translation_Start_Site', 'Nonstop_Mutation'
+    'Missense_Mutation', 'Nonsense_Mutation', 'Nonstop_Mutation',
+    'Frame_Shift_Ins', 'Frame_Shift_Del', 'In_Frame_Del', 'In_Frame_Ins',
+    'Translation_Start_Site', 'Splice_Site', 'Splice_Region'
 ]
 
-maf_nonsilent = maf[maf['Variant_Classification'].isin(non_silent)]
+maf_nonsilent = maf[
+    maf['Variant_Classification'].isin(non_silent)
+    & (maf['Mutation_Status'].astype(str) != 'GERMLINE')
+]
 
-# For exome (~30 Mb)
-CODING_REGION_MB = 30  # Adjust for your bait set
+# Tempo CDS denominator (Mb) — match your assay: Agilent 30.89918, IDT 36.00458, WGS 45.57229
+CODING_REGION_MB = 30.89918  # Agilent Exon 51MB v3
 tmb = len(maf_nonsilent) / CODING_REGION_MB
 print(f"Non-silent mutations: {len(maf_nonsilent)}")
 print(f"TMB: {tmb:.2f} mutations/Mb")
@@ -91,18 +97,20 @@ print(tmb_per_sample.sort_values('TMB', ascending=False))
 ```r
 library(data.table)
 
-maf <- fread("outDir/somatic/TUMOR__NORMAL/combined_mutations/TUMOR__NORMAL.somatic.final.maf",
-             skip = "#version")  # skip comment lines
+maf <- fread("outDir/somatic/TUMOR__NORMAL/combined_mutations/TUMOR__NORMAL.somatic.final.maf")
+# Tempo MAFs start directly with the column header. If your MAF has a leading
+# `#version` comment, add `skip = "Hugo_Symbol"` to fread.
 
 non_silent <- c(
-  "Missense_Mutation", "Nonsense_Mutation", "Frame_Shift_Del",
-  "Frame_Shift_Ins", "In_Frame_Del", "In_Frame_Ins",
-  "Splice_Site", "Translation_Start_Site", "Nonstop_Mutation"
+  "Missense_Mutation", "Nonsense_Mutation", "Nonstop_Mutation",
+  "Frame_Shift_Ins", "Frame_Shift_Del", "In_Frame_Del", "In_Frame_Ins",
+  "Translation_Start_Site", "Splice_Site", "Splice_Region"
 )
 
-maf_ns <- maf[Variant_Classification %in% non_silent]
+maf_ns <- maf[Variant_Classification %in% non_silent &
+              (is.na(Mutation_Status) | Mutation_Status != "GERMLINE")]
 
-CODING_REGION_MB <- 30  # Adjust for your bait set
+CODING_REGION_MB <- 30.89918  # Agilent Exon 51MB v3 — match your assay (IDT 36.00458, WGS 45.57229)
 tmb <- nrow(maf_ns) / CODING_REGION_MB
 cat(sprintf("Non-silent mutations: %d\nTMB: %.2f mutations/Mb\n", nrow(maf_ns), tmb))
 ```

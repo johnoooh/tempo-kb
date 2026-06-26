@@ -2,6 +2,8 @@
 
 > **Quick answer:** The cohort `sv_somatic.bedpe` concatenates each pair's PASS-filtered somatic SV BEDPE. Every row is already a multi-caller PASS call (the `FILTER` column = `PASS`). Columns are the svtools BEDPE columns plus Tempo `TUMOR_ID`/`NORMAL_ID`, a cDNA-contamination flag, iAnnotateSV gene annotations, and (WGS only) ClusterSV columns. Caller support is carried inside the `INFO_A`/`INFO_B` fields, not as top-level columns.
 
+> **Older deliveries ship `sv_somatic.vcf.gz` instead of `sv_somatic.bedpe`.** If your cohort_level directory contains a VCF, it was produced before Tempo switched its SV aggregator to BEDPE — the columns below do not apply. Decompress with `bgzip -d` (or `gunzip`) and parse it as a standard multi-sample VCF (`#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT <samples…>`); `FILTER == PASS` and `INFO=SVTYPE=...` carry the same information as the BEDPE's `FILTER` and `TYPE`. Re-run on a newer pipeline version if you need the BEDPE schema.
+
 ## How it is built (verified — `modules/process/`)
 
 1. Per-pair SV VCFs → BEDPE via **svtools `vcftobedpe`** (`SomaticSVVcf2Bedpe.nf`), with `TUMOR_ID`/`NORMAL_ID` appended.

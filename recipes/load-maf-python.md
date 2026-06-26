@@ -4,7 +4,7 @@
 
 ## What Is a MAF File
 
-MAF (Mutation Annotation Format) is a tab-delimited text file that contains one row per somatic mutation. Tempo produces MAF files annotated with variant caller information, functional annotations from VEP, oncogenicity from OncoKB, and copy number data from FACETS. The first few lines of a MAF file begin with `#` comment headers that must be skipped when reading.
+MAF (Mutation Annotation Format) is a tab-delimited text file that contains one row per somatic mutation. Tempo produces MAF files annotated with variant caller information, functional annotations from VEP, oncogenicity from OncoKB, and copy number data from FACETS. Tempo's MAFs typically start directly with the column header (no `#version` line); `comment='#'` below is defensive in case a generator does include comment lines.
 
 ## MAF File Location
 
