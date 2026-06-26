@@ -15,9 +15,13 @@
 
 So **every row in the cohort file is already a PASS call** — no further FILTER step is needed.
 
-## Columns (verified order from `SomaticSVVcf2Bedpe.nf`)
+## Header preamble (read this first)
 
-The svtools/Tempo block (columns 1–25):
+Both per-pair and cohort BEDPEs start with a **VCF-style preamble** — `##fileformat=BEDPEVCFv4.2`, `##FILTER=…`, `##contig=…` lines — before the tab-delimited column header. `pd.read_csv(sep='\t')` alone will fail because pandas sees the `##` lines as 1-column rows. Skip them with `comment='#'`, or grab the `#CHROM_A` header explicitly (recipe below). The cohort aggregator (`SomaticAggregateSv.nf`) keeps the first pair's preamble, then drops subsequent preambles, so the cohort file has the same structure.
+
+## Columns (verified order — per-pair WES `.final.bedpe`)
+
+Columns 1–25 are the svtools/Tempo block:
 
 ```
 #CHROM_A START_A END_A CHROM_B START_B END_B ID QUAL STRAND_A STRAND_B
@@ -26,33 +30,56 @@ FORMAT TUMOR NORMAL TUMOR_ID NORMAL_ID
 ```
 - Breakpoint A: `CHROM_A/START_A/END_A/STRAND_A`; breakpoint B: the `_B` columns.
 - `TYPE` = SV type (DEL/DUP/INV/BND/…); `FILTER` = `PASS` for all kept rows (col 12).
-- `INFO_A`/`INFO_B` carry the merged-caller INFO, including **caller support** (`NumCallers`, `NumCallersPass`, `Callers`) — parse these strings if you need per-caller evidence.
+- `INFO_A`/`INFO_B` carry the merged-caller INFO. Caller support is in `INFO_A` as `Callers=manta,delly`, `NumCallers=2`, `NumCallersPass=1` — parse these out of the `;`-delimited string.
 
-Then appended:
-- `POTENTIAL_CDNA_CONTAMINATION` (from `detect_cdna.py`)
-- **iAnnotateSV** annotation columns — typically `gene1`, `site1`, `gene2`, `site2`, `fusion`/`description` (exact set defined by iAnnotateSV, **not enumerated in the Tempo repo** — read your header).
-- **WGS only** (ClusterSV): `cluster_id`, `cluster_total_count`, `footprint_id_low`, `footprint_id_high`, `coord_footprint_id_low`, `coord_footprint_id_high`, `clustersv_pval`.
+Then `POTENTIAL_CDNA_CONTAMINATION` (col 26, from `detect_cdna.py`), followed by **iAnnotateSV** columns 27–43 in this exact order (verified):
+
+```
+gene1 transcript1 site1
+gene2 transcript2 site2
+fusion Cosmic_Fusion_Counts
+repName-repClass-repFamily:-site1 repName-repClass-repFamily:-site2
+CC_Chr_Band CC_Tumour_Types(Somatic) CC_Cancer_Syndrome
+CC_Mutation_Type CC_Translocation_Partner
+DGv_Name-DGv_VarType-site1 DGv_Name-DGv_VarType-site2
+```
+
+- The `repName-repClass-repFamily:-site1/2` and `DGv_Name-DGv_VarType-site1/2` column names contain hyphens, colons, and parentheses — quote them when subsetting (`df["repName-repClass-repFamily:-site1"]`).
+- Column count for WES = **43**. WGS adds **ClusterSV** columns at the end: `cluster_id`, `cluster_total_count`, `footprint_id_low`, `footprint_id_high`, `coord_footprint_id_low`, `coord_footprint_id_high`, `clustersv_pval`. (Not present in WES — verified.)
 
 ## Loading (Python)
 
 ```python
 import pandas as pd
-bedpe = pd.read_csv("cohort_level/<cohort>/sv_somatic.bedpe", sep="\t")
-bedpe = bedpe.rename(columns={bedpe.columns[0]: "CHROM_A"})  # strip leading '#'
+
+path = "cohort_level/<cohort>/sv_somatic.bedpe"  # or somatic/{T}__{N}/combined_svs/*.final.bedpe
+
+# Pull the column header line yourself so the leading '#' is stripped cleanly.
+with open(path) as f:
+    for line in f:
+        if line.startswith("#CHROM_A"):
+            cols = line.lstrip("#").rstrip("\n").split("\t")
+            break
+
+bedpe = pd.read_csv(path, sep="\t", comment="#", names=cols, header=None)
+# `comment='#'` skips the ##fileformat / ##FILTER / ##contig preamble and the
+# duplicated #CHROM_A line (the aggregator keeps only the first pair's header,
+# but comment='#' handles either way).
 
 # All rows are PASS already. Example: gene fusions annotated by iAnnotateSV
-fusions = bedpe[bedpe.get("fusion", "").astype(str).str.len() > 0]
+fusions = bedpe[bedpe["fusion"].astype(str).str.len() > 0]
 
 # Per-sample SV burden
 burden = bedpe.groupby("TUMOR_ID").size().sort_values(ascending=False)
 
-# Pull caller support out of INFO (format is KEY=VAL;KEY=VAL)
+# Pull caller support out of INFO_A (format is KEY=VAL;KEY=VAL; flags have no '=')
 def info_val(info, key):
     for kv in str(info).split(";"):
         if kv.startswith(key + "="):
             return kv.split("=", 1)[1]
     return None
 bedpe["NumCallersPass"] = bedpe["INFO_A"].map(lambda s: info_val(s, "NumCallersPass"))
+bedpe["Callers"]        = bedpe["INFO_A"].map(lambda s: info_val(s, "Callers"))
 ```
 
 ## Filtering notes

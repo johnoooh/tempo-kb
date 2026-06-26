@@ -14,7 +14,7 @@ Tempo writes the final filtered and annotated MAF to:
 outDir/somatic/{idTumor}__{idNormal}/combined_mutations/{idTumor}__{idNormal}.somatic.final.maf
 ```
 
-The double-underscore (`__`) separates the tumor sample ID from the matched normal sample ID. There is also an unfiltered MAF in the same directory, but you should use the `.somatic.final.maf` for most analyses.
+The double-underscore (`__`) separates the tumor sample ID from the matched normal sample ID. There is also an unfiltered MAF in the same directory at `{idTumor}__{idNormal}.somatic.unfiltered.maf` (note the explicit `.unfiltered.` infix — the two are distinguished by `unfiltered` vs `final`, not by absence of `.final`). Use the `.somatic.final.maf` for most analyses; the unfiltered MAF lacks the FACETS CCF/zygosity columns (233 cols vs 276 in the final).
 
 ## Loading the MAF with Pandas
 
@@ -102,8 +102,8 @@ print(f"Oncogenic mutations: {len(oncogenic_muts)}")
 ## File Locations
 
 - Final MAF: `outDir/somatic/{idTumor}__{idNormal}/combined_mutations/{idTumor}__{idNormal}.somatic.final.maf`
-- Unfiltered MAF: same directory, without the `.final` suffix
-- Aggregated cohort MAF (if `--aggregate` was used): `outDir/cohort_level/`
+- Unfiltered MAF: `outDir/somatic/{idTumor}__{idNormal}/combined_mutations/{idTumor}__{idNormal}.somatic.unfiltered.maf`
+- Aggregated cohort MAF (if `--aggregate` was used): `outDir/cohort_level/<cohort>/mut_somatic.maf` — equivalent to concatenating each pair's final MAF.
 
 ## See Also
 

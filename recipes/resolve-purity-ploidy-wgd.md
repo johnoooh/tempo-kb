@@ -33,13 +33,18 @@ Rearranging the somatic formula lets you **solve for the purity** implied by a c
 
 ## How Tempo decides WGD
 
-Tempo does not compute WGD itself — it reads the `wgd` column from the FACETS-suite/facetsPreview `*.qc.txt` and records a per-pair status in `MetaDataParser` (`create_metadata_file.py`):
+Tempo does not compute WGD itself — `MetaDataParser` (`create_metadata_file.py`) reads the `wgd` column from the pair-level facetsPreview summary file `{idTumor}__{idNormal}.facets_qc.txt` (passed as `--facetsQC` from `dsl2.nf`):
 
 ```
-if any(qc.wgd == True):     WGD_status = True
-elif any(qc.wgd == False):  WGD_status = False
-else:                        WGD_status = 'NA'
+if sum(qc.wgd) > 0:                # any TRUE wgd → True
+    WGD_status = True
+elif sum(qc.wgd == False) > 0:     # otherwise any FALSE → False
+    WGD_status = False
+else:
+    WGD_status = 'NA'
 ```
+
+This file lives at the **pair root**, not inside `facets{version}.../`. There is also a `{pair}.qc.txt` **inside** the versioned facets subdir with per-fit (one row per `cval`) facetsPreview output — same columns minus the top-level `is_best_fit`/`purity`/`ploidy` block. The pipeline uses the pair-root `*.facets_qc.txt` for the WGD call.
 
 MultiQC marks `wgd` as `fail` if facetsPreview's WGD detection itself failed. So a reported WGD is only as reliable as the underlying FACETS fit — which is the thing you are questioning.
 
