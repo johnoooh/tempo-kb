@@ -16,8 +16,6 @@ To submit a request, your Project Manager generally needs:
 - **Who should have access** — every analyst, PI, and investigator who should be able to read the results. This becomes the **`endUsers`** list on the request. **Anyone not on this list will not have access when the cohort is delivered**, so make sure your PM has the complete list up front.
 - **Project information** so results are associated with the correct project.
 
-Sample IDs may be provided in either `C-` style or `s_C_` style format — your PM handles the formatting details.
-
 ## Adding Access Later
 
 If someone needs access **after** delivery, they can be added — contact your CMO Project Manager to update the access list. See [accessing-results.md](accessing-results.md#who-has-access-endusers).
