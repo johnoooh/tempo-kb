@@ -107,7 +107,8 @@ grep -A1 "withName:RunMutect2" tempo/conf/containers.config
 
 ## See Also
 
-- [pipeline-overview.md](pipeline-overview.md) -- High-level pipeline architecture and execution flow
-- [facets-copynumber.md](../somatic/facets-copynumber.md) -- Detailed FACETS copy number analysis
-- [sv-calling.md](../somatic/sv-calling.md) -- Structural variant calling workflow details
-- [qc-metrics.md](../qc/qc-metrics.md) -- Quality control thresholds and interpretation
+- [overview.md](overview.md) -- High-level pipeline architecture and execution flow
+- [../tools/tools-summary.md](../tools/tools-summary.md) -- The same inventory grouped by stage, with assay scope and links to deep dives
+- [../tools/facets-algorithm.md](../tools/facets-algorithm.md) -- Detailed FACETS copy number analysis
+- [../tools/sv-callers.md](../tools/sv-callers.md) -- Structural variant calling workflow details
+- [../outputs/qc-thresholds.md](../outputs/qc-thresholds.md) -- Quality control thresholds and interpretation

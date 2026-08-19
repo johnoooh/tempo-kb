@@ -39,7 +39,7 @@ print(maf)
 oncoplot(maf, top = 20)
 ```
 
-Tempo MAFs contain standard MAF column names (`Hugo_Symbol`, `Variant_Classification`, `Tumor_Sample_Barcode`, etc.), so `read.maf()` works without any column remapping.
+Tempo MAFs contain standard MAF column names (`Hugo_Symbol`, `Variant_Classification`, `Tumor_Sample_Barcode`, etc.), so `read.maf()` works without any column remapping. If `read.maf()` warns about an empty `Mutation_Status` column (Tempo's filtered MAF leaves this NA for somatic calls), the warning is harmless — the variant counts and oncoplot are unaffected.
 
 ## Example: Cohort Oncoplot
 
@@ -57,10 +57,8 @@ maf_files <- list.files(
   full.names = TRUE
 )
 
-# Combine into a single MAF
-combined <- rbindlist(lapply(maf_files, function(f) {
-  fread(f, skip = "#version")
-}))
+# Combine into a single MAF (Tempo MAFs have no #version line — plain fread works)
+combined <- rbindlist(lapply(maf_files, fread))
 
 # Write to temp file and read with maftools
 tmp <- tempfile(fileext = ".maf")

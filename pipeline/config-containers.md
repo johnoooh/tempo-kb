@@ -118,6 +118,8 @@ process {
 }
 ```
 
+Pass it with `-c mycontainers.config -resume`. The `withName:` selector matches the process name exactly (wildcards like `withName:"CreateScatteredIntervals.*"` also appear in the repo). To use a **private registry** or a **local Singularity image**, set `container` to the registry path (e.g. `myregistry.example.com/facets:1.0`) or a `.sif` / `docker://` URI. Registry login and engine runtime options (Docker/Singularity `runOptions`, credentials) are configured through standard Nextflow/Singularity mechanisms — these are **not specified in the Tempo repo**, so follow your container engine's documentation.
+
 ## See Also
 
 - [config-profiles.md](config-profiles.md) -- Which profiles use Docker vs Singularity

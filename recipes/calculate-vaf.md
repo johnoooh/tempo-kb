@@ -115,6 +115,30 @@ plt.savefig('vaf_distributions.png', dpi=150)
 
 VAF alone does not directly indicate clonality. To determine whether a mutation is clonal or subclonal, use the cancer cell fraction (CCF), which adjusts VAF for tumor purity and local copy number.
 
+> **`t_depth` vs `t_alt_count + t_ref_count`:** these are usually equal but not guaranteed — `t_depth` can include reads supporting neither the ref nor the alt allele. Tempo's own filtering uses `t_var_freq = t_alt_count / (t_alt_count + t_ref_count)` (`filter-somatic-maf.R`). Prefer that denominator when reproducing Tempo's filter decisions.
+
+## Expected VAF given purity and copy number
+
+Observed VAF depends on tumor purity and the local allele-specific copy number, so the "expected" VAF for a given zygosity is not 0.5. This is the formula Tempo uses internally (`annotate-with-zygosity-somatic.R`) to test whether an observed VAF is concordant with the FACETS copy-number call.
+
+For a **somatic** variant on a segment of total copy number `tcn`, with `alt_cn` mutant copies, at tumor purity `p`:
+
+```
+expected_VAF = (p · alt_cn) / (p · tcn + 2 · (1 − p))
+```
+
+The `2·(1−p)` term is the two reference copies from every normal cell in the sample. Examples at `p = 0.56`:
+
+| State | tcn | alt_cn | Expected VAF |
+|-------|-----|--------|--------------|
+| Clonal heterozygous, diploid | 2 | 1 | 0.28 |
+| Clonal, 1 copy after LOH | 1 | 1 | 0.39 |
+| 1 of 4 copies mutant (WGD) | 4 | 1 | 0.18 |
+
+So a heterozygous clonal driver in a diploid genome sits near `p/2`, **not** 0.5. **Germline** variants use `expected_VAF = (p·alt_cn + (1−p)) / (p·tcn + 2·(1−p))` (the allele is also present in normal cells).
+
+This formula is the key tool for spotting a purity–ploidy / WGD misfit — see [resolve-purity-ploidy-wgd.md](resolve-purity-ploidy-wgd.md).
+
 ## See Also
 
 - [load-maf-python.md](load-maf-python.md) -- loading and exploring MAF files

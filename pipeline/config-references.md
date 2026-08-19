@@ -16,9 +16,7 @@ On Juno, the reference hierarchy is:
 
 - `params.reference_base = "/juno/work/tempo/cmopipeline"`
 - `params.genome_base` for GRCh37: `${reference_base}/mskcc-igenomes/igenomes/Homo_sapiens/GATK/GRCh37`
-- `params.targets_base`: `${reference_base}/mskcc-igenomes/grch37/tempo_targets`
-
-<!-- TODO: VERIFY WITH USER -- params.targets_base uses ${params.genome.toLowerCase()} so GRCh38 targets would resolve to ${reference_base}/mskcc-igenomes/grch38/tempo_targets -->
+- `params.targets_base`: `${reference_base}/mskcc-igenomes/${params.genome.toLowerCase()}/tempo_targets` (set in `conf/juno.config`). For GRCh37 this resolves to `.../grch37/tempo_targets`; for GRCh38, `.../grch38/tempo_targets`.
 
 ## Reference FASTA and Indices (GRCh37)
 
@@ -49,10 +47,10 @@ FACETS uses a curated dbSNP VCF for allele-specific copy number analysis:
 
 Variant Effect Predictor annotation uses a local cache:
 
-- **GRCh37 VEP cache**: `${reference_base}/mskcc-igenomes/grch37/vep`
-- **GRCh38 VEP cache version**: `95` (set via `vepCacheVersion`)
+- **GRCh37 VEP cache**: `${reference_base}/mskcc-igenomes/grch37/vep`, `vepCacheVersion = "88"`
+- **GRCh38 VEP cache version**: `vepCacheVersion = "95"`
 
-<!-- TODO: VERIFY WITH USER -- GRCh37 vepCacheVersion is not explicitly set in the GRCh37 block of references.config; it is set to "88" only in the smallGRCh37 block. Confirm which VEP version is used in production. -->
+Both are set explicitly in `conf/references.config` (GRCh37 block: 88; GRCh38 block: 95). This matches the `vcf2maf:vep88` annotation container used for GRCh37 runs.
 
 ## gnomAD VCFs (GRCh37)
 
@@ -78,7 +76,7 @@ Target and bait intervals are resolved per capture kit using `params.targets_bas
 - `targetsBedGz`: `${targets_base}/${targets_id}/targets.bed.gz` (plus `.tbi`)
 - `codingBed`: `${targets_base}/${targets_id}/coding.bed`
 
-<!-- TODO: VERIFY WITH USER -- The available targets_id values (e.g., agilent, idt, idt_v2, wgs) should be confirmed by listing the actual directories under the targets_base path on Juno. -->
+`targets_id` comes from the `TARGET` column of the mapping file. The values exercised in the pipeline's test inputs are **`agilent`**, **`idt`** (both WES bait sets), and **`wgs`** (whole genome). These correspond to the TMB CDS denominators in [`../recipes/calculate-tmb.md`](../recipes/calculate-tmb.md) (Agilent Exon 51MB v3, IDT Exome v1 FP, WGS). Other bait-set directories may exist on Juno; list `targets_base` to see the full set available in your deployment.
 
 ## HLA Reference Files
 

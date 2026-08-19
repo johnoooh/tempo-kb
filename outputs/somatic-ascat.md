@@ -39,8 +39,6 @@ ASCAT produces two main output types in the `ascatResults/` directory:
 | `*.copynumber.caveman.csv` | Allele-specific copy number segments in Caveman format. Contains chromosome, start, end, total copy number, and minor allele copy number for each segment. |
 | `*.samplestatistics.txt` | Sample-level statistics including estimated tumor purity (aberrant cell fraction), ploidy, and goodness-of-fit metrics. Used by BRASS for SV calling. |
 
-<!-- TODO: VERIFY WITH USER -->
-
 ## Downstream Usage
 
 - **BRASS SV calling** -- The `sv_wf` workflow accepts sample statistics from ASCAT (`ascatSS`) as an alternative to FACETS sample statistics for the BRASS structural variant caller. BRASS uses purity and ploidy estimates to refine SV detection in WGS.
@@ -57,8 +55,7 @@ outDir/somatic/{idTumor}__{idNormal}/
     {idTumor}__{idNormal}.samplestatistics.txt
 ```
 
-<!-- TODO: VERIFY WITH USER -->
-Note: The exact publishDir for ASCAT is not explicitly defined in the process file; outputs are emitted to channels consumed by downstream processes. The file paths above reflect the expected output structure based on the `runAscat` process working directory.
+Note: The `runAscat` process does not define an explicit `publishDir`; ASCAT outputs are emitted to channels consumed by downstream processes (verified against `modules/process/Ascat/` on the `develop` branch). The file paths above reflect the expected output structure based on the process working directory.
 
 ## Example
 

@@ -46,6 +46,26 @@ The FACETS process includes a retry mechanism that tries up to 4 different rando
 
 After FACETS completes, Tempo runs `summarize_project.py` to produce a summary output file (`*_OUT.txt`) and `generate_samplestatistics.R` to extract sample statistics (purity, ploidy, dipLogR) for both hisens and purity fits. These statistics feed into downstream tools including BRASS, HRDetect, and SVclone. The FACETS Preview QC step (`DoFacetsPreviewQC`) generates additional genomic annotations and quality metrics using the `facetsPreview` R package.
 
+If FACETS fails to estimate purity, `generate_samplestatistics.R` substitutes a **fallback purity of 0.3** for the downstream sample-statistics file, and infers sex from chrX heterozygosity (male if `sum(nhet)/sum(num.mark) < 0.01` across chrX). Both can affect downstream CN baselines, so check the FACETS QC before trusting a 0.3-purity result.
+
+## Run Parameters by Assay (defaults)
+
+| Parameter | WES | WGS | Role |
+|-----------|-----|-----|------|
+| hisens `cval` | 100 | 1000 | segmentation sensitivity (lower = more segments) |
+| `purity_cval` | 500 | 5000 | coarser segmentation for the purity fit |
+| `snp_nbhd` (bp) | 250 | 500 | SNP sampling window |
+| `ndepth` | 35 | 15 | minimum normal depth at a SNP |
+| `min_nhet` | 25 | 25 | minimum het SNPs per segment |
+| pseudo-snps (bp) | 50 | 50 | pseudo-SNP spacing for coverage in SNP-sparse regions |
+| seed | 100 | 100 | RNG seed; +1 per retry, up to 4 retries |
+
+Source: `conf/exome.config`, `conf/genome.config`. **Applying WGS `cval` to exome data (or vice versa) produces a fundamentally different segment resolution** — confirm the assay matches the config.
+
+## Whole Genome Doubling (WGD)
+
+Tempo does not compute WGD itself; it reads the `wgd` flag from the FACETS-suite/facetsPreview `*.qc.txt` and records a per-pair `WGD_status` in `MetaDataParser`. Because a WGD call is only as good as the underlying purity/ploidy fit, a WGD at moderate purity can be a purity–ploidy artifact — see [`../recipes/resolve-purity-ploidy-wgd.md`](../recipes/resolve-purity-ploidy-wgd.md) for how to confirm or refute it using expected VAF.
+
 ## File Locations
 
 - FACETS process: `tempo/modules/process/Facets/DoFacets.nf`
